@@ -2,36 +2,57 @@ import os
 import math
 import numpy as np
 from stl import mesh
-from mpl_toolkits import mplot3d
-from matplotlib import pyplot as plt
+import open3d as o3d
+import copy
 
 
 class stl_changes:
 
+    def draw_registration_result(source, target, transformation):
+        source_temp = copy.deepcopy(source)
+        target_temp = copy.deepcopy(target)
+        source_temp.paint_uniform_color([1, 0.706, 0])
+        target_temp.paint_uniform_color([0, 0.651, 0.929])
+        source_temp.transform(transformation)
+        o3d.visualization.draw_geometries([source_temp, target_temp])
+
+
     def compute_transformation_matrix(stl_points, real_points):
-        
-        # Generate all possible permutations of the new points.
-        # For each permutation, assume it represents the correct correspondence and compute the transformation matrix.
-        # Apply the transformation matrix to the original points.
-        # Calculate the cost function for the transformed original points versus the permuted new points.
-        # Select the permutation and corresponding transformation matrix that results in the lowest cost.
+        # 1. For each point in the source point cloud, match the closest point in the reference 
+        # point cloud (by doing an euclidean distance for example).
+        source = stl_points
+        target = real_points
 
-        return np.eye(4)  # Returning an identity matrix as a placeholder
 
-    def apply_transformation(stl_mesh, transformation_matrix):
-        # Apply transformation to each point in the mesh
-        # This is simplified; actual implementation will vary
-        transformed_points = np.dot(transformation_matrix, np.hstack((stl_mesh, np.ones((stl_mesh.shape[0], 1)))).T).T
+        # Run ICP registration
+        threshold = 0.02  # Set a threshold for the point matching
+        trans_init = np.identity(4)  # Start with an identity matrix as the initial transformation
+
+        reg_p2p = o3d.pipelines.registration.registration_icp(
+            source, target, threshold, trans_init,
+            o3d.pipelines.registration.TransformationEstimationPointToPoint())
+
+        return reg_p2p
+
+    def apply_transformation(stl_points, transformation_matrix):
+
         return transformed_points[:, :3]  # Convert back to 3D
 
-    def segment_point_cloud(transformed_points):
-        # Placeholder: Segment the transformed points into individual objects
-        # This might involve logic specific to your STL structure or desired segmentation
-        return [transformed_points]  # Returning a single segment as a placeholder
+    def track_stl_changes(source_stl, target_stl):
+        # Load an STL mesh
+        source_mesh = o3d.io.read_triangle_mesh("stl_files/cube.stl")
+        target_mesh = o3d.io.read_triangle_mesh("stl_files/modified_cube.stl")
 
-    def track_stl_changes(stl_file, stl_points, real_points):
-        stl_data = mesh.Mesh.from_file(stl_file)
-        transformation_matrix = compute_transformation_matrix(stl_points, real_points)
-        transformed_points = apply_transformation(stl_data.points, transformation_matrix)
-        segments = segment_point_cloud(transformed_points)
-        return segments
+        # Convert the mesh to a point cloud
+        source_point_cloud = source_mesh.sample_points_poisson_disk(number_of_points=1000)
+        target_point_cloud = target_mesh.sample_points_poisson_disk(number_of_points=1000) 
+
+        # Run ICP registration
+        threshold = 0.02  # Set a threshold for the point matching
+        trans_init = np.identity(4)  # Start with an identity matrix as the initial transformation
+        reg_p2p = o3d.pipelines.registration.registration_icp(
+            source_point_cloud, target_point_cloud, threshold, trans_init,
+            o3d.pipelines.registration.TransformationEstimationPointToPoint())
+
+        draw_registration_result()
+

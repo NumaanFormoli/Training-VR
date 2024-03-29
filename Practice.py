@@ -4,16 +4,37 @@ import numpy as np
 from stl import mesh
 from mpl_toolkits import mplot3d
 from matplotlib import pyplot as plt
+import open3d as o3d
 
 new_working_directory = '/Users/numaanformoli/Documents/simulation_center/vr_project/Training-VR'
 os.chdir(new_working_directory)
+
+# Load an STL mesh
+mesh = o3d.io.read_triangle_mesh("stl_files/cube.stl")
+
+# Convert the mesh to a point cloud
+point_cloud = mesh.sample_points_poisson_disk(number_of_points=1000)
+
+# extract xyz coordinates
+points = np.asarray(point_cloud.points)
+
+# Visualize the point cloud
+# o3d.visualization.draw_geometries([point_cloud])
+
+# mesh.compute_vertex_normals()
+
+# # Step 3: Visualize the mesh
+# o3d.visualization.draw_geometries([mesh])
+
+
+
 
 ########## Plotting using matplotlib is equally easy ##########
 # figure = plt.figure()
 # axes = figure.add_subplot(111, projection='3d')
 
 # # Load the STL files and add the vectors to the plot
-# your_mesh = mesh.Mesh.from_file('stl_files/Shape-Box.stl')
+# your_mesh = mesh.Mesh.from_file('stl_files/cube.stl')
 # axes.add_collection3d(mplot3d.art3d.Poly3DCollection(your_mesh.vectors))
 
 # # Auto scale to the mesh size
