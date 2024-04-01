@@ -9,14 +9,14 @@ import open3d as o3d
 new_working_directory = '/Users/numaanformoli/Documents/simulation_center/vr_project/Training-VR'
 os.chdir(new_working_directory)
 
-# Load an STL mesh
-mesh = o3d.io.read_triangle_mesh("stl_files/cube.stl")
+# # Load an STL mesh
+# mesh = o3d.io.read_triangle_mesh("stl_files/cube.stl")
 
-# Convert the mesh to a point cloud
-point_cloud = mesh.sample_points_poisson_disk(number_of_points=1000)
+# # Convert the mesh to a point cloud
+# point_cloud = mesh.sample_points_poisson_disk(number_of_points=1000)
 
-# extract xyz coordinates
-points = np.asarray(point_cloud.points)
+# # extract xyz coordinates
+# points = np.asarray(point_cloud.points)
 
 # Visualize the point cloud
 # o3d.visualization.draw_geometries([point_cloud])
